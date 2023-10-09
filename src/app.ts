@@ -1,6 +1,11 @@
 import { LitElement, html } from "lit";
-import { customElement } from "lit/decorators.js";
-import { Engine } from "../engine/Engine";
+import { customElement, property } from "lit/decorators.js";
+import { Engine } from "./engine/Engine";
+
+export enum Screen{
+    MainMenu,
+    GameScreen
+}
 
 @customElement('ms-app')
 class App extends LitElement {
@@ -19,6 +24,9 @@ class App extends LitElement {
         this.canvas && (this.engine = new Engine(this.canvas, {}));
     }
 
+    @property({ type: Number, })
+    screen = Screen.MainMenu;
+
     connectedCallback(): void {
         super.connectedCallback()
         this.canvas = this.renderRoot.querySelector('canvas');
@@ -26,7 +34,18 @@ class App extends LitElement {
 
     protected render() {
         return html `
+            ${
+                this.screen == Screen.GameScreen ? 
+                html`` :
+                html`<ms-main-menu></ms-main-menu>`
+            }
             <canvas></canvas>
         `
+    }
+}
+
+declare global {
+    interface HTMLElementTagNameMap {
+      'ms-app': App
     }
 }
