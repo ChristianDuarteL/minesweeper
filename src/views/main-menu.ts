@@ -16,6 +16,7 @@ export default class MainMenu extends LitElement {
                 align-items: center;
                 gap: 1em;
             }
+
         `
     ]
 
@@ -26,7 +27,7 @@ export default class MainMenu extends LitElement {
     protected render() {
         return html`
             <h1>Minesweeper</h1>
-            <button @click=${() => this.selectOption(1)}>Play</button>
+            <button @click=${() => this.selectOption(0)}>Play</button>
         `
     }
 }
