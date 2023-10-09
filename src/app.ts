@@ -24,8 +24,12 @@ class App extends LitElement {
         this.canvas && (this.engine = new Engine(this.canvas, {}));
     }
 
+    _screen = Screen.MainMenu;
+    
     @property({ type: Number, })
-    screen = Screen.MainMenu;
+    set screen(value: Screen){
+        this._screen = value;
+    }
 
     connectedCallback(): void {
         super.connectedCallback()

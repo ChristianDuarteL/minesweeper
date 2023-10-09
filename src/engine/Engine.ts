@@ -70,7 +70,7 @@ export class Engine<ContextType = any> extends EventTarget {
         this.addListeners();
     }
 
-    addListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any){
+    addListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => void){
         document.addEventListener(type, listener);
         this.event_functions.set(type, listener as EventListenerOrEventListenerObject);
     }
