@@ -2,12 +2,13 @@ import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { Engine } from "./engine/Engine";
 import './views/main-menu';
+import './views/level-selection';
 import { OptionSelectedEvent } from "./views/main-menu";
 import base from "./styles/base";
 
 export enum Screen{
     MainMenu,
-    PlayMenu,
+    LevelSelection,
     GameScreen
 }
 
@@ -66,7 +67,7 @@ class App extends LitElement {
     mainMenuOptionSelected(i: number){
         switch(i){
             case 0: 
-                this.screen = Screen.GameScreen
+                this.screen = Screen.LevelSelection
             break;
         }
     }
@@ -74,11 +75,8 @@ class App extends LitElement {
     protected render() {
         return html `
             <canvas></canvas>
-            ${
-                this.screen == Screen.MainMenu ? 
-                html`<ms-main-menu @optionselected=${(e: OptionSelectedEvent) => this.mainMenuOptionSelected(e.detail.option)}></ms-main-menu>` :
-                html``
-            }
+            ${ this.screen == Screen.MainMenu ? html`<ms-main-menu @optionselected=${(e: OptionSelectedEvent) => this.mainMenuOptionSelected(e.detail.option)}></ms-main-menu>` : null }
+            ${ this.screen == Screen.LevelSelection ? html`<ms-level-selection></ms-level-selection>` : null }
         `
     }
 }
