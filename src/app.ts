@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { Engine } from "./engine/Engine";
 import './views/main-menu';
 import { OptionSelectedEvent } from "./views/main-menu";
+import base from "./styles/base";
 
 export enum Screen{
     MainMenu,
@@ -14,6 +15,7 @@ export enum Screen{
 class App extends LitElement {
 
     static override styles = [
+        base,
         css`
             :host{
                 display: grid;
