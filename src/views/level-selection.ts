@@ -74,15 +74,18 @@ export default class LevelSelectionMenu extends LitElement {
                 --btn-color: #f99;
                 color: var(--btn-color);
                 position: relative;
-                transition: .2s color, .2s background, .2s outline, .2s outline-color, .2s outline-offset;
+                transition: .2s color, .2s outline, .2s outline-color, .2s outline-offset;
                 min-width: 150px;
                 min-height: 150px;
                 width: 18vmin;
                 height: 18vmin;
-                padding: .2em .7em;
+                padding: .2em;
                 outline-offset: -.1em;
                 border-radius: .1em;
                 outline: 2px solid transparent;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
             }
 
             button:hover, button:focus-visible{
@@ -107,12 +110,17 @@ export default class LevelSelectionMenu extends LitElement {
                 gap: 1em;
                 flex-wrap: wrap;
             }
+
+            .level-name{
+                font-size: 2rem;
+            }
+
+            .level-size{
+                font-size: 1rem;
+                margin-left: .25rem;
+            }
         `
     ]
-
-    selectOption(option: number){
-        dispatch(this, 'optionselected', { option });
-    }
 
     @property({ type: Array })
     levels: LevelData[] = [
@@ -154,7 +162,8 @@ export default class LevelSelectionMenu extends LitElement {
             <div class="difficulties-container">
                 ${ map(this.levels, (e) => html`
                     <button @click=${() => this.selectLevel(e)}>
-                        ${e.name}
+                        <span class="level-name">${e.name}</span>
+                        <span class="level-size">${e.width} x ${e.height}</span>
                     </button>
                 `)}
             </div>
