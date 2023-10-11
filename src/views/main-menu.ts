@@ -16,8 +16,9 @@ export default class MainMenu extends LitElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
                 
-                color: #f99;
+                color: #1265A5;
                 gap: 1em;
             }
 
@@ -26,7 +27,7 @@ export default class MainMenu extends LitElement {
             }
             
             .title{
-                color: #f99;
+                color: #1379C7;
                 display: inline-flex;
                 position: relative;
                 align-items: center;
@@ -75,7 +76,7 @@ export default class MainMenu extends LitElement {
 
             button{
                 font-size: 2em;
-                --btn-color: #f99;
+                --btn-color: #1379C7;
                 color: var(--btn-color);
                 position: relative;
                 transition: .2s;
@@ -106,7 +107,7 @@ export default class MainMenu extends LitElement {
             }
 
             button:hover, button:focus-visible{
-                --btn-color: #f88;
+                --btn-color: #0B5995;
             }
             
             button:focus-visible {
@@ -116,7 +117,7 @@ export default class MainMenu extends LitElement {
             }
 
             button:active{
-                --btn-color: #f77;
+                --btn-color: #0C5791;
                 outline-offset: -.05em;
             }
 

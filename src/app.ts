@@ -26,7 +26,7 @@ class App extends LitElement {
         css`
             :host{
                 display: grid;
-                place-items: center;
+                place-items: stretch;
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr;
                 min-height: 100vh;
