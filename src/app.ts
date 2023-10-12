@@ -6,7 +6,6 @@ import './views/game-screen';
 import { OptionSelectedEvent } from "./views/main-menu";
 import base from "./styles/base";
 import { LevelData, LevelSelectedEvent } from "./views/level-selection";
-import { Game } from "./core/game";
 
 export enum Screen{
     MainMenu,
