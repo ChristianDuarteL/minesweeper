@@ -1,21 +1,17 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { Engine } from "./engine/Engine";
 import './views/main-menu';
 import './views/level-selection';
 import './views/game-screen';
 import { OptionSelectedEvent } from "./views/main-menu";
 import base from "./styles/base";
 import { LevelData, LevelSelectedEvent } from "./views/level-selection";
+import { Game } from "./core/game";
 
 export enum Screen{
     MainMenu,
     LevelSelection,
     GameScreen
-}
-
-export interface GameContext {
-    level_data?: LevelData;
 }
 
 @customElement('ms-app')
@@ -36,22 +32,16 @@ class App extends LitElement {
             :host > * {
                 grid-area: 1 / 1 / 2 / 2;
             }
+
+            canvas{
+                width: 100%;
+                height: 100vh;
+            }
         `
     ]
 
-    _canvas: HTMLCanvasElement | null = null;
-    engine: Engine<GameContext> | null = null;
-
-    get canvas(){
-        return this._canvas;
-    }
-
-    set canvas(value: HTMLCanvasElement | null){
-        this._canvas = value;
-        this.engine?.dispose();
-        this._canvas = this.canvas;
-        this.canvas && (this.engine = new Engine<GameContext>(this.canvas, {}));
-    }
+    @property({ type:Object })
+    current_level?: LevelData;
 
     _screen = Screen.MainMenu;
     
@@ -67,7 +57,6 @@ class App extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback()
-        this.canvas = this.renderRoot.querySelector('canvas');
     }
 
     mainMenuOptionSelected(i: number){
@@ -79,18 +68,16 @@ class App extends LitElement {
     }
 
     play(e: LevelData) {
-        this.engine?.setContext({
-            level_data: e
-        })
+        this.current_level = e;
         this.screen = Screen.GameScreen
     }
 
+
     protected render() {
         return html `
-            <canvas></canvas>
             ${ this.screen == Screen.MainMenu ? html`<ms-main-menu @optionselected=${(e: OptionSelectedEvent) => this.mainMenuOptionSelected(e.detail.option)}></ms-main-menu>` : null }
             ${ this.screen == Screen.LevelSelection ? html`<ms-level-selection @levelselected=${(e: LevelSelectedEvent) => this.play(e.detail)}></ms-level-selection>` : null }
-            ${ this.screen == Screen.GameScreen ? html`<ms-game-screen></ms-game-screen>` : null }
+            ${ this.screen == Screen.GameScreen && this.current_level ? html`<ms-game-screen .current_level=${this.current_level}></ms-game-screen>` : null }
         `
     }
 }

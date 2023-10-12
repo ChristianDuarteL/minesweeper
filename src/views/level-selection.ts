@@ -145,8 +145,8 @@ export default class LevelSelectionMenu extends LitElement {
         },
         {
             bombs: 99,
-            height: 30,
-            width: 16,
+            height: 16,
+            width: 30,
             name: 'Expert'
         }
     ];
