@@ -42,16 +42,19 @@ export default class GameScreen extends LitElement {
     ]
 
     @property({type: Number})
-    bombs: number = 0;
+    bombs_left: number = 0;
+
+    @property({type: Number})
+    time_elapsed: number = 0;
 
     protected render() {
         return html`
             <div class="header">
-                <ms-game-indicator>
+                <ms-game-indicator amount=${this.bombs_left}>
                     ${FlagIcon}
                 </ms-game-indicator>
                 
-                <ms-game-indicator>
+                <ms-game-indicator amount=${this.time_elapsed}>
                     ${ClockIcon}
                 </ms-game-indicator>
             </div>
