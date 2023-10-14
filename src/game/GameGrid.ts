@@ -28,11 +28,13 @@ export class GameGrid extends Grid {
 
     draw_element_fn = (ctx: CanvasRenderingContext2D, i: point, pos: point, size: dimension, game: Engine<GameContext>) => {
         if(game.context.selected_tile && game.context.selected_tile[0] == i[0] && game.context.selected_tile[1] === i[1]){
-            ctx.fillStyle = (i[0] + i[1]) % 2 ? "#bfe17d" : "#b9dd77";
+            ctx.fillStyle = "#8fcdff";
         }else{
-            ctx.fillStyle = (i[0] + i[1]) % 2 ? "#aad751" : "#a2d149";
+            ctx.fillStyle = "#60bdfc";
         }
-        ctx.fillRect(...pos, ...size);
+        ctx.beginPath();
+        ctx.roundRect(pos[0] + 3, pos[1] + 3, size[0] - 6, size[1] - 6, 10);
+        ctx.fill();
     };
 
 }
