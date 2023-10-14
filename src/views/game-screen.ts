@@ -8,6 +8,7 @@ import { LevelData } from "./level-selection";
 import { Engine, point } from "../engine/Engine";
 import { GameGrid } from "../game/GameGrid";
 import { Game } from "../core/game";
+import { addPositions } from "../utils";
 
 export interface GameContext {
     selected_tile?: point;
@@ -87,7 +88,7 @@ export default class GameScreen extends LitElement {
         this.init_engine();
         this.engine?.startLoop();
     }
-
+    
     init_engine(){
         const canvas = this.canvas;
         if(this._current_level && canvas){
@@ -107,6 +108,41 @@ export default class GameScreen extends LitElement {
             game: new Game(this.current_level, false),
             shadow_game: new Game(this.current_level)
         })
+    }
+
+    sweep(pos: point){
+        if(!this.engine || !this.engine.context.game) return;
+        if(!this.current_level) return;
+        let stack_next: point[] = [];
+        this.engine.dispatchEvent(new CustomEvent('sweep', { detail: pos }));
+        if(!this.engine.context.game.get_tile(...pos)){
+            this.engine.context.shadow_game?.set_tile(...pos, 1);
+            stack_next.push(addPositions(...pos, 0, 1));
+            stack_next.push(addPositions(...pos, 0, -1));
+            
+            stack_next.push(addPositions(...pos, 1, 1));
+            stack_next.push(addPositions(...pos, 1, 0));
+            stack_next.push(addPositions(...pos, 1, -1));
+
+            stack_next.push(addPositions(...pos, -1, 1));
+            stack_next.push(addPositions(...pos, -1, 0));
+            stack_next.push(addPositions(...pos, -1, -1));
+        }
+        while(stack_next.length > 0){
+            const stack = stack_next;
+            stack_next = [];
+            let elem;
+            while((elem = stack.pop())){
+                const tile = this.engine.context.game.get_tile(...elem);
+                this.engine.dispatchEvent(new CustomEvent('sweep', { detail: elem }));
+                this.engine.context.shadow_game?.set_tile(...elem, 1);
+                if(tile){
+                    break;
+                }
+                stack_next.push(elem);
+            }
+            
+        }
     }
 
     recalculateCanvas(){

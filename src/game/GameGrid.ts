@@ -49,6 +49,7 @@ export class GameGrid extends Grid {
 
 declare global{
     interface DefaultEngineEventMap {
-        generategame: point
+        generategame: point,
+        sweep: point
     }
 }

@@ -47,6 +47,15 @@ type WithUndefined<T> = {
     [P in keyof T]?: T[P];
 }
 
+type Func<TArgs extends unknown[], TResult = void> = (...args: TArgs) => TResult; 
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface Timer<M extends unknown[] = any[]>{
+    time: number;
+    function: Func<M, void>;
+    params: M;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class Engine<ContextType = any, EngineEventMap extends { [key: string]: any } = DefaultEngineEventMap> {
     entities: Entity[];
@@ -60,6 +69,9 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     private event_target: EventTarget = new EventTarget();
     canvas_size: dimension;
     context: ContextType;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    timers: Timer<any>[] = [];
 
     get canvas_styles() : CSSStyleDeclaration{
         return this.canvas.style;
@@ -169,6 +181,18 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         if(!this.looping)
             return;
         time && this.clock.tick(time);
+        
+        if(this.timers.length){
+            this.timers.forEach(e => e.time -= this.clock.deltaTime);
+            const timers_done = this.timers.filter(e => e.time <= 0);
+            if(timers_done.length){
+                this.timers = this.timers.filter(e => e.time > 0);
+                timers_done.forEach(e => {
+                    e.function(...e.params);
+                })
+            }
+        }
+
         this.update();
         this.redraw();
         this.looping && (this.animation_frame = requestAnimationFrame(this.doLoop.bind(this)));
@@ -232,6 +256,15 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
             const pos: point = this.getXY(element);
             this.entities.forEach(e => e.touchmove(...pos, element, this, event))
         }
+    }
+
+    setTimeout<M extends unknown[]>(timeout: number, fn: Func<M, void>, ...params: M){
+        const timer: Timer<M> = {
+            function: fn,
+            time: timeout,
+            params: params
+        }
+        this.timers.push(timer);
     }
 
     get deltaTime() {
