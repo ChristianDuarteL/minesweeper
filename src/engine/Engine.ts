@@ -40,8 +40,15 @@ export class FPSCounter extends Entity{
     }
 }
 
+interface DefaultEngineEventMap {
+}
+
+type WithUndefined<T> = {
+    [P in keyof T]?: T[P];
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class Engine<ContextType = any> extends EventTarget {
+export class Engine<ContextType = any, EngineEventMap extends { [key: string]: any } = DefaultEngineEventMap> {
     entities: Entity[];
     private entities_map: Map<string, Entity[]>;
     private clock: Clock;
@@ -50,6 +57,7 @@ export class Engine<ContextType = any> extends EventTarget {
     private looping: boolean = false;
     private animation_frame: number | null = null;
     private event_functions: Map<keyof DocumentEventMap, EventListenerOrEventListenerObject>;
+    private event_target: EventTarget = new EventTarget();
     canvas_size: dimension;
     context: ContextType;
 
@@ -58,7 +66,6 @@ export class Engine<ContextType = any> extends EventTarget {
     }
 
     constructor(canvas: HTMLCanvasElement, context: ContextType){
-        super();
         this.entities = [];
         this.entities_map = new Map();
         this.event_functions = new Map();
@@ -68,6 +75,20 @@ export class Engine<ContextType = any> extends EventTarget {
         this.canvas_size = [ this.canvas.width, this.canvas.height ];
         this.context = Object.freeze(context);
         this.addListeners();
+    }
+
+    dispatchEvent(evt: CustomEvent){
+        this.event_target.dispatchEvent(evt)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    removeEventListener<K extends keyof EngineEventMap>(type: K, listener: (ev: CustomEvent<EngineEventMap[K]>) => any, options?: boolean | AddEventListenerOptions){
+        this.event_target.removeEventListener(type as string, listener as EventListener, options)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addEventListener<K extends keyof EngineEventMap>(type: K, listener: (ev: CustomEvent<EngineEventMap[K]>) => any, options?: boolean | AddEventListenerOptions){
+        this.event_target.addEventListener(type as string, listener as EventListener, options)
     }
 
     addListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => void){
@@ -217,7 +238,7 @@ export class Engine<ContextType = any> extends EventTarget {
         return this.clock.deltaTime;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setContext (value: any) {
+    setContext(value: WithUndefined<ContextType>) {
         this.context = { ...this.context, ...value};
     }
 

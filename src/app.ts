@@ -56,6 +56,14 @@ class App extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback()
+        this.play(
+            {
+                bombs: 9,
+                height: 8,
+                width: 8,
+                name: 'Expert'
+            }
+        )
     }
 
     mainMenuOptionSelected(i: number){

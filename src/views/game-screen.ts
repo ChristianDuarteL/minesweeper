@@ -12,8 +12,8 @@ import { Game } from "../core/game";
 export interface GameContext {
     selected_tile?: point;
     level_data: LevelData;
-    game: Game,
-    shadow_game: Game
+    game?: Game,
+    shadow_game?: Game
 }
 
 @customElement('ms-game-screen')
@@ -57,7 +57,7 @@ export default class GameScreen extends LitElement {
         `
     ]
 
-    engine?: Engine<GameContext>;
+    engine?: Engine<GameContext, DefaultEngineEventMap>;
 
     @property({type: Number})
     bombs_left: number = 0;
@@ -93,14 +93,21 @@ export default class GameScreen extends LitElement {
         if(this._current_level && canvas){
             this.engine = new Engine(canvas, {
                 level_data: this._current_level,
-                game: new Game(this._current_level),
-                shadow_game: new Game(this._current_level, false),
             });
+            this.engine.addEventListener('generategame', this.generateGame)
             this.engine.addEntity(new GameGrid());
             this.recalculateCanvas();
         }
     }
 
+    generateGame() {
+        if(!this.engine || this.engine.context.game) return;
+        if(!this.current_level) return;
+        this.engine.setContext({
+            game: new Game(this.current_level, false),
+            shadow_game: new Game(this.current_level)
+        })
+    }
 
     recalculateCanvas(){
         if(!this.canvas) return;

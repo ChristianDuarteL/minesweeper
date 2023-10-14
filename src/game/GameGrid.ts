@@ -1,10 +1,12 @@
 import { Engine, dimension, point } from "../engine/Engine";
 import { Grid } from "../engine/Grid";
+import { addPositions, substractPositions } from "../utils";
 import { GameContext } from "../views/game-screen";
 
 export class GameGrid extends Grid {
     max_row_labels_count?: number;
     max_col_labels_count?: number;
+    padding: number = 6;
     
     constructor(size_ratio: point = [1, 1]){
         super([1, 1], size_ratio)
@@ -20,7 +22,13 @@ export class GameGrid extends Grid {
         });
     }
 
-    click_fn = () => {
+    click_fn = (index: point, game: Engine<GameContext>) => {
+        if(!game.context.game){
+            game.dispatchEvent(new CustomEvent<point>('generategame', {
+                detail: index,
+            }))
+            return;
+        }
     }
 
     touch_fn = () => {
@@ -33,8 +41,14 @@ export class GameGrid extends Grid {
             ctx.fillStyle = "#60bdfc";
         }
         ctx.beginPath();
-        ctx.roundRect(pos[0] + 3, pos[1] + 3, size[0] - 6, size[1] - 6, 10);
+        ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
         ctx.fill();
     };
 
+}
+
+declare global{
+    interface DefaultEngineEventMap {
+        generategame: point
+    }
 }
