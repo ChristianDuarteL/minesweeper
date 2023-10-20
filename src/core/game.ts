@@ -38,8 +38,12 @@ export class Game {
         }
     }
 
-    get_tile(x: number, y: number){
-        return this.data ? this.data[y][x] : null;
+    get_tile<T>(x: number, y: number, default_val: T | null = null){
+        return this.data && y >= 0 && y < this.data.length && x >= 0 && x < this.data[y].length ? this.data[y][x] : default_val;
+    }
+
+    get_tile_nullsafe<T>(x: number, y: number, default_val: T){
+        return this.data && y >= 0 && y < this.data.length && x >= 0 && x < this.data[y].length ? this.data[y][x] : default_val;
     }
 
     set_tile(x: number, y: number, value: number){
@@ -56,5 +60,16 @@ export class Game {
             }
         }
         return game;
+    }
+
+    surrounding_bombs(x: number, y: number): number {
+        return  this.get_tile_nullsafe(x + 1, y + 1, 0) + 
+        this.get_tile_nullsafe(x + 1, y, 0) + 
+        this.get_tile_nullsafe(x + 1, y - 1, 0) + 
+        this.get_tile_nullsafe(x, y + 1, 0) + 
+        this.get_tile_nullsafe(x, y - 1, 0) + 
+        this.get_tile_nullsafe(x - 1, y + 1, 0) + 
+        this.get_tile_nullsafe(x - 1, y, 0) + 
+        this.get_tile_nullsafe(x - 1, y - 1, 0);
     }
 }

@@ -178,8 +178,6 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     }
     
     protected doLoop(time?: number){
-        if(!this.looping)
-            return;
         time && this.clock.tick(time);
         
         if(this.timers.length){
@@ -192,10 +190,14 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
                 })
             }
         }
+        
+        this.looping && (this.animation_frame = requestAnimationFrame(this.doLoop.bind(this)));
+
+        if(!this.looping)
+            return;
 
         this.update();
         this.redraw();
-        this.looping && (this.animation_frame = requestAnimationFrame(this.doLoop.bind(this)));
     }
 
     startLoop(){
@@ -265,6 +267,12 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
             params: params
         }
         this.timers.push(timer);
+    }
+
+    waitTimeout(time: number): Promise<void> {
+        return new Promise((res) => {
+            this.setTimeout(time, res);
+        })
     }
 
     get deltaTime() {

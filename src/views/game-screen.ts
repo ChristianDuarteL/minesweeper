@@ -95,54 +95,73 @@ export default class GameScreen extends LitElement {
             this.engine = new Engine(canvas, {
                 level_data: this._current_level,
             });
-            this.engine.addEventListener('generategame', this.generateGame)
+            this.engine.addEventListener('generategame', this.generateGame.bind(this))
             this.engine.addEntity(new GameGrid());
             this.recalculateCanvas();
+            this.engine.startLoop();
         }
     }
 
-    generateGame() {
+    generateGame({detail: pos}: CustomEvent<point>) {
         if(!this.engine || this.engine.context.game) return;
         if(!this.current_level) return;
         this.engine.setContext({
             game: new Game(this.current_level, false),
             shadow_game: new Game(this.current_level)
         })
+        console.log(pos)
+        this.sweep(pos);
     }
 
-    sweep(pos: point){
-        if(!this.engine || !this.engine.context.game) return;
+    isTileAvailable(game: Game, x: number, y: number){
+        return x >= 0 && x < game.level_data.width &&
+        y >= 0 && y < game.level_data.height 
+        && !game.get_tile(x, y)
+        && (
+            game.get_tile(x + 1, y) == 0 ||
+            game.get_tile(x - 1, y) == 0 ||
+            game.get_tile(x + 1, y + 1) == 0 ||
+            game.get_tile(x + 1, y - 1) == 0 ||
+            game.get_tile(x - 1, y + 1) == 0 ||
+            game.get_tile(x - 1, y - 1) == 0 ||
+            game.get_tile(x, y + 1) == 0 ||
+            game.get_tile(x, y - 1) == 0
+        );
+    }
+
+    async sweep(pos: point){
+        if(!this.engine || !this.engine.context.game || !this.engine.context.shadow_game) return;
         if(!this.current_level) return;
         let stack_next: point[] = [];
         this.engine.dispatchEvent(new CustomEvent('sweep', { detail: pos }));
-        if(!this.engine.context.game.get_tile(...pos)){
-            this.engine.context.shadow_game?.set_tile(...pos, 1);
-            stack_next.push(addPositions(...pos, 0, 1));
-            stack_next.push(addPositions(...pos, 0, -1));
-            
-            stack_next.push(addPositions(...pos, 1, 1));
-            stack_next.push(addPositions(...pos, 1, 0));
-            stack_next.push(addPositions(...pos, 1, -1));
-
-            stack_next.push(addPositions(...pos, -1, 1));
-            stack_next.push(addPositions(...pos, -1, 0));
-            stack_next.push(addPositions(...pos, -1, -1));
+        if(!this.engine.context.shadow_game.get_tile(...pos)){
+            stack_next.push(pos)
         }
         while(stack_next.length > 0){
             const stack = stack_next;
             stack_next = [];
             let elem;
             while((elem = stack.pop())){
-                const tile = this.engine.context.game.get_tile(...elem);
+                const tile = this.engine.context.shadow_game.get_tile(...elem);
                 this.engine.dispatchEvent(new CustomEvent('sweep', { detail: elem }));
-                this.engine.context.shadow_game?.set_tile(...elem, 1);
-                if(tile){
-                    break;
+                this.engine.context.game?.set_tile(...elem, 1);
+                if(tile || this.engine.context.shadow_game.surrounding_bombs(...elem)){
+                    continue;
                 }
-                stack_next.push(elem);
+                let m;
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, 0, 1)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, 0, -1)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, 1, 0)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, -1, 0)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, 1, 1)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, 1, -1)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, -1, 1)), null) === 0 && stack_next.push(m);
+                this.engine.context.game.get_tile(...(m = addPositions(...elem, -1, -1)), null) === 0 && stack_next.push(m);
             }
-            
+            await this.engine.waitTimeout(10);
         }
+        
+        console.log("duck" )
     }
 
     recalculateCanvas(){

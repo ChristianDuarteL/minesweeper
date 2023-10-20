@@ -1,6 +1,6 @@
 import { Engine, dimension, point } from "../engine/Engine";
 import { Grid } from "../engine/Grid";
-import { addPositions, substractPositions } from "../utils";
+import { addPositions, dividePositions, substractPositions } from "../utils";
 import { GameContext } from "../views/game-screen";
 
 export class GameGrid extends Grid {
@@ -40,9 +40,23 @@ export class GameGrid extends Grid {
         }else{
             ctx.fillStyle = "#60bdfc";
         }
+        if(game.context.game?.get_tile(...i)){
+            ctx.fillStyle = "#ddd";
+        }
         ctx.beginPath();
         ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
         ctx.fill();
+        if(!game.context.game?.get_tile(...i)){
+            return;
+        }
+        const n = game.context.shadow_game?.surrounding_bombs(...i)
+        if(n && n > 0){
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#f00";
+            ctx.font = "bold 48px sans-serif";
+            ctx.fillText(n?.toString(), ...addPositions(...pos, ...dividePositions(...size, 2)))
+        }
     };
 
 }

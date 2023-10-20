@@ -8,7 +8,7 @@ export class Clock {
     
     tick(time: number){
         if (time < this.lastTime) return;
-        this.deltaTime = (time - this.lastTime) / 1000;
+        this.deltaTime = (time - this.lastTime);
         this.lastTime = time;
     }
 }
