@@ -1,7 +1,9 @@
 import { Engine, dimension, point } from "../engine/Engine";
 import { Grid } from "../engine/Grid";
-import { addPositions, dividePositions, substractPositions } from "../utils";
+import { addPositions, substractPositions } from "../utils";
 import { GameContext } from "../views/game-screen";
+
+const FONT_COLORS = [ '#ffff', '#3ea1ed', '#9adf51', '#ef6c8b', '#0247ae', '#5098ff', '#578a63', '#9b5b9b', '#ff9a3b', '#ff3b3b',]
 
 export class GameGrid extends Grid {
     max_row_labels_count?: number;
@@ -41,21 +43,24 @@ export class GameGrid extends Grid {
             ctx.fillStyle = "#60bdfc";
         }
         if(game.context.game?.get_tile(...i)){
-            ctx.fillStyle = "#ddd";
+            ctx.fillStyle = "#fff";
+            ctx.strokeStyle = "#ddd";
         }
         ctx.beginPath();
         ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
         ctx.fill();
+        ctx.stroke();
         if(!game.context.game?.get_tile(...i)){
             return;
         }
         const n = game.context.shadow_game?.surrounding_bombs(...i)
         if(n && n > 0){
             ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#f00";
-            ctx.font = "bold 48px sans-serif";
-            ctx.fillText(n?.toString(), ...addPositions(...pos, ...dividePositions(...size, 2)))
+            ctx.textBaseline = "bottom";
+            ctx.fillStyle = FONT_COLORS[n];
+            ctx.font = "bold 38px 'Nunito'";
+            const metrics = ctx.measureText(n?.toString());
+            ctx.fillText(n?.toString(), pos[0] + size[0] /2 , pos[1] + size[1] / 2 - metrics.actualBoundingBoxDescent + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2)
         }
     };
 
