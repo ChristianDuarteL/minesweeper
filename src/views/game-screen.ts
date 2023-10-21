@@ -95,12 +95,28 @@ export default class GameScreen extends LitElement {
             this.engine = new Engine(canvas, {
                 level_data: this._current_level,
             });
-            this.engine.addEventListener('generategame', this.generateGame.bind(this))
+            this._sweepCallback = ({detail: pos}: CustomEvent<point>) => this.sweep(pos);
+            this._generateGameCallback = this.generateGame.bind(this)
+            this._markCallback = ({detail: pos}: CustomEvent<point>) => this.mark(pos);
+            this.engine.addEventListener('generategame', this._generateGameCallback)
+            this.engine.addEventListener('sweep', this._sweepCallback)
+            this.engine.addEventListener('mark', this._markCallback)
             this.engine.addEntity(new GameGrid());
             this.recalculateCanvas();
             this.engine.startLoop();
         }
     }
+
+    dispose_engine(){
+        if(!this.engine) return;
+        this._generateGameCallback && this.engine.removeEventListener('generategame', this._generateGameCallback);
+        this._sweepCallback && this.engine.removeEventListener('sweep', this._sweepCallback)
+        this._markCallback && this.engine.removeEventListener('mark', this._markCallback)
+    }
+
+    _generateGameCallback?: (evt: CustomEvent<point>) => void;
+    _sweepCallback?: (evt: CustomEvent<point>) => void;
+    _markCallback?: (evt: CustomEvent<point>) => void;
 
     generateGame({detail: pos}: CustomEvent<point>) {
         if(!this.engine || this.engine.context.game) return;
@@ -109,7 +125,6 @@ export default class GameScreen extends LitElement {
             game: new Game(this.current_level, false),
             shadow_game: new Game(this.current_level)
         })
-        console.log(pos)
         this.sweep(pos);
     }
 
@@ -129,22 +144,29 @@ export default class GameScreen extends LitElement {
         );
     }
 
+    mark(pos: point) {
+        if(!this.engine) return;
+        this.engine.context.game?.set_tile(...pos, -1);
+    }
+
     async sweep(pos: point){
         if(!this.engine || !this.engine.context.game || !this.engine.context.shadow_game) return;
         if(!this.current_level) return;
         let stack_next: point[] = [];
-        this.engine.dispatchEvent(new CustomEvent('sweep', { detail: pos }));
+        this.engine.dispatchEvent(new CustomEvent('swept', { detail: pos }));
         if(!this.engine.context.shadow_game.get_tile(...pos)){
             stack_next.push(pos)
         }
         while(stack_next.length > 0){
             const stack = stack_next;
             stack_next = [];
-            let elem;
+            let elem: point | undefined;
             while((elem = stack.pop())){
                 const tile = this.engine.context.shadow_game.get_tile(...elem);
-                this.engine.dispatchEvent(new CustomEvent('sweep', { detail: elem }));
-                this.engine.context.game?.set_tile(...elem, 1);
+                this.engine.dispatchEvent(new CustomEvent('swept', { detail: elem }));
+                this.engine.setContext(() => {
+                    elem && this.engine?.context.game?.set_tile(...elem, 1);
+                });
                 if(tile || this.engine.context.shadow_game.surrounding_bombs(...elem)){
                     continue;
                 }
@@ -158,10 +180,8 @@ export default class GameScreen extends LitElement {
                 this.engine.context.game.get_tile(...(m = addPositions(...elem, -1, 1)), null) === 0 && stack_next.push(m);
                 this.engine.context.game.get_tile(...(m = addPositions(...elem, -1, -1)), null) === 0 && stack_next.push(m);
             }
-            await this.engine.waitTimeout(10);
+            await this.engine.waitTimeout(32);
         }
-        
-        console.log("duck" )
     }
 
     recalculateCanvas(){

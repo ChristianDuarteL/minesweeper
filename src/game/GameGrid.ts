@@ -19,18 +19,28 @@ export class GameGrid extends Grid {
     }
 
     selected_change_fn = (indices: point, game: Engine<GameContext>) => {
-        game.setContext({
-            selected_tile: indices
-        });
+        if(!game.context.selected_tile || game.context.selected_tile[0] != indices[0] || game.context.selected_tile[1] != indices[1]){
+            game.setContext({
+                selected_tile: indices
+            });
+        }
     }
 
-    click_fn = (index: point, game: Engine<GameContext>) => {
+    click_fn = (index: point, game: Engine<GameContext>, event: MouseEvent) => {
+        if(event.buttons | 2){
+            game.dispatchEvent(new CustomEvent<point>('mark', {
+                detail: index,
+            }))
+        }
         if(!game.context.game){
             game.dispatchEvent(new CustomEvent<point>('generategame', {
                 detail: index,
             }))
             return;
         }
+        game.dispatchEvent(new CustomEvent<point>('sweep', {
+            detail: index,
+        }))
     }
 
     touch_fn = () => {
@@ -69,6 +79,7 @@ export class GameGrid extends Grid {
 declare global{
     interface DefaultEngineEventMap {
         generategame: point,
-        sweep: point
+        sweep: point,
+        mark: point
     }
 }

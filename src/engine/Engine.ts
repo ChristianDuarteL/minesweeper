@@ -67,6 +67,7 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     private animation_frame: number | null = null;
     private event_functions: Map<keyof DocumentEventMap, EventListenerOrEventListenerObject>;
     private event_target: EventTarget = new EventTarget();
+    private requires_update: boolean = false;
     canvas_size: dimension;
     context: ContextType;
 
@@ -120,6 +121,7 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         this.addListener('mouseup', this.mouseup.bind(this));
         this.addListener('mousemove', this.mousemove.bind(this));
         this.addListener('touchmove', this.touchmove.bind(this));
+        this.addListener('contextmenu', e => e.preventDefault())
     }
 
     removeListeners(){
@@ -193,17 +195,19 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         
         this.looping && (this.animation_frame = requestAnimationFrame(this.doLoop.bind(this)));
 
-        if(!this.looping)
+        this.update();
+        if(!this.looping || !this.requires_update)
             return;
 
-        this.update();
         this.redraw();
+        this.requires_update = false;
     }
 
     startLoop(){
         if(this.looping) return;
         this.looping = true;
         this.doLoop();
+        this.requires_update = true;
     }
 
     stopLoop(){
@@ -278,9 +282,11 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     get deltaTime() {
         return this.clock.deltaTime;
     }
+    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setContext(value: WithUndefined<ContextType>) {
-        this.context = { ...this.context, ...value};
+    setContext(value: WithUndefined<ContextType> | (() => (WithUndefined<ContextType> | void))) {
+        this.context = { ...this.context, ...(typeof value == 'function' ? value() : value)};
+        this.requires_update = true;
     }
 
     getXY(value: {clientX: number, clientY: number} | {x: number, y: number} | point): point{
@@ -302,5 +308,6 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         this.canvas_size = [width, height];
         this.entities.forEach(e => e.resize(width, height, this))
         this.redraw();
+        this.requires_update = true;
     }
 }

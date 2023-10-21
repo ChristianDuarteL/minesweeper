@@ -77,10 +77,10 @@ export class Grid extends Entity {
         if(!point) return;
         if(!game.context.selected_tile || game.context.selected_tile[0] != point[0] || game.context.selected_tile[1] != point[1]){
             this.selected_change_fn && this.selected_change_fn(point, game, event, game.context.selected_tile ?? null, );
+            game.setContext({
+                selected_tile: point,
+            })
         }
-        game.setContext({
-            selected_tile: point,
-        })
     }
 
     override touchmove(x: number, y: number, touch: Touch, game: Engine<GridContext>, event: TouchEvent): void {
