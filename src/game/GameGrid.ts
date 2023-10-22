@@ -1,9 +1,17 @@
+import { AbstractGame } from "../core/game";
 import { Engine, dimension, point } from "../engine/Engine";
 import { Grid } from "../engine/Grid";
+import { Color } from "../engine/painting";
 import { addPositions, substractPositions } from "../utils";
-import { GameContext } from "../views/game-screen";
+import { CellData, GameContext } from "../views/game-screen";
 
 const FONT_COLORS = [ '#ffff', '#3ea1ed', '#9adf51', '#ef6c8b', '#0247ae', '#5098ff', '#578a63', '#9b5b9b', '#ff9a3b', '#ff3b3b',]
+const TILE_COLORS = {
+    normal: new Color('60bdfc'),
+    selected: new Color('8fcdff'),
+    marked: new Color('fcbc60'),
+    unknown: new Color('73fc60'),
+}
 
 export class GameGrid extends Grid {
     max_row_labels_count?: number;
@@ -16,29 +24,32 @@ export class GameGrid extends Grid {
 
     init(game: Engine<GameContext>): void {
         this.setSize([game.context.level_data.width, game.context.level_data.height]);
+        game.setContext({ 
+            grid_data: new AbstractGame<CellData>({
+                width: game.context.level_data.width,
+                height: game.context.level_data.height,
+            }, () => ({
+                animating: false,
+                animation_time: 0,
+                animation_duration: 200
+            }))
+        })
     }
 
     selected_change_fn = (indices: point, game: Engine<GameContext>) => {
-        if(!game.context.selected_tile || game.context.selected_tile[0] != indices[0] || game.context.selected_tile[1] != indices[1]){
-            game.setContext({
-                selected_tile: indices
-            });
-        }
+        game.setContext({
+            selected_tile: indices
+        });
     }
 
-    click_fn = (index: point, game: Engine<GameContext>, event: MouseEvent) => {
-        if(event.buttons | 2){
-            game.dispatchEvent(new CustomEvent<point>('mark', {
-                detail: index,
-            }))
-        }
+    click_fn = (index: point, game: Engine<GameContext>, evt: MouseEvent) => {
         if(!game.context.game){
             game.dispatchEvent(new CustomEvent<point>('generategame', {
                 detail: index,
             }))
             return;
         }
-        game.dispatchEvent(new CustomEvent<point>('sweep', {
+        game.dispatchEvent(new CustomEvent<point>(evt.buttons & 2 ? 'mark' : 'sweep', {
             detail: index,
         }))
     }
@@ -47,20 +58,42 @@ export class GameGrid extends Grid {
     }
 
     draw_element_fn = (ctx: CanvasRenderingContext2D, i: point, pos: point, size: dimension, game: Engine<GameContext>) => {
+        const tile = game.context.grid_data?.get_tile(...i, null);
+        if(!tile) return;
+        ctx.fillStyle = "#60bdfc";
+        ctx.strokeStyle = "#ddd";
         if(game.context.selected_tile && game.context.selected_tile[0] == i[0] && game.context.selected_tile[1] === i[1]){
             ctx.fillStyle = "#8fcdff";
-        }else{
-            ctx.fillStyle = "#60bdfc";
-        }
-        if(game.context.game?.get_tile(...i)){
-            ctx.fillStyle = "#fff";
             ctx.strokeStyle = "#ddd";
         }
         ctx.beginPath();
         ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
         ctx.fill();
+        switch(game.context.game?.get_tile(...i)){
+            case 1:
+                ctx.fillStyle = "#fff";
+                ctx.strokeStyle = "#ddd";
+                break;
+            case -1:
+                ctx.fillStyle = "#fcbc60";
+                ctx.strokeStyle = "#ddd";
+                if(tile.animating){
+                    ctx.fillStyle = TILE_COLORS.normal.lerp(TILE_COLORS.marked, tile.animation_time / tile.animation_duration).toHexString();
+                }
+                break;
+            case -2:
+                ctx.fillStyle = "#73fc60";
+                ctx.strokeStyle = "#ddd";
+                if(tile.animating){
+                    ctx.fillStyle = TILE_COLORS.marked.lerp(TILE_COLORS.unknown, tile.animation_time / tile.animation_duration).toHexString();
+                }
+                break;
+        }
+        ctx.beginPath();
+        ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
+        ctx.fill();
         ctx.stroke();
-        if(!game.context.game?.get_tile(...i)){
+        if(game.context.game?.get_tile(...i) !== 1){
             return;
         }
         const n = game.context.shadow_game?.surrounding_bombs(...i)
@@ -80,6 +113,6 @@ declare global{
     interface DefaultEngineEventMap {
         generategame: point,
         sweep: point,
-        mark: point
+        mark: point,
     }
 }

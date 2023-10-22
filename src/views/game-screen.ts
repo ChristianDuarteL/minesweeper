@@ -7,14 +7,21 @@ import { ClockIcon } from "../icons/clock";
 import { LevelData } from "./level-selection";
 import { Engine, point } from "../engine/Engine";
 import { GameGrid } from "../game/GameGrid";
-import { Game } from "../core/game";
+import { AbstractGame, Game } from "../core/game";
 import { addPositions } from "../utils";
+
+export interface CellData{
+    animating: boolean,
+    animation_time: number,
+    animation_duration: number,
+}
 
 export interface GameContext {
     selected_tile?: point;
     level_data: LevelData;
     game?: Game,
-    shadow_game?: Game
+    shadow_game?: Game;
+    grid_data?: AbstractGame<CellData>;
 }
 
 @customElement('ms-game-screen')
@@ -46,6 +53,10 @@ export default class GameScreen extends LitElement {
                 max-width: 640px;
                 width: 90%;
                 display: flex;
+            }
+
+            .header, .footer {
+                position: absolute;
             }
             
             .header{
@@ -129,8 +140,8 @@ export default class GameScreen extends LitElement {
     }
 
     isTileAvailable(game: Game, x: number, y: number){
-        return x >= 0 && x < game.level_data.width &&
-        y >= 0 && y < game.level_data.height 
+        return x >= 0 && x < game.game_data.width &&
+        y >= 0 && y < game.game_data.height 
         && !game.get_tile(x, y)
         && (
             game.get_tile(x + 1, y) == 0 ||
@@ -146,12 +157,36 @@ export default class GameScreen extends LitElement {
 
     mark(pos: point) {
         if(!this.engine) return;
-        this.engine.context.game?.set_tile(...pos, -1);
+        const tile = this.engine.context.game?.get_tile(...pos, null);
+        if(tile === null || tile === undefined || tile == 1) return;
+        this.engine.setContext((ctx) => {
+            ctx.game?.set_tile(...pos, (tile - 1) % 3)
+            if(!ctx.grid_data) return;
+            const grid_tile = ctx.grid_data.get_tile(...pos, null);
+            if(grid_tile) {
+                grid_tile.animating = true;
+                grid_tile.animation_duration = 100;
+                grid_tile.animation_time = 0;
+                this.engine?.setTicker(grid_tile.animation_duration, () => {
+                    this.engine?.setContext(() => {
+                        grid_tile.animation_time += this.engine?.deltaTime ?? 0
+                    });
+                }, () => {
+                    console.log('e')
+                    this.engine?.setContext(() => {
+                        grid_tile.animating = false;
+                        grid_tile.animation_time = 0;
+                    });
+                })
+            }
+        });
     }
 
     async sweep(pos: point){
         if(!this.engine || !this.engine.context.game || !this.engine.context.shadow_game) return;
         if(!this.current_level) return;
+        const tile = this.engine.context.game.get_tile(...pos, null);
+        if(tile === null || tile === undefined || tile != 0) return;
         let stack_next: point[] = [];
         this.engine.dispatchEvent(new CustomEvent('swept', { detail: pos }));
         if(!this.engine.context.shadow_game.get_tile(...pos)){

@@ -49,11 +49,18 @@ type WithUndefined<T> = {
 
 type Func<TArgs extends unknown[], TResult = void> = (...args: TArgs) => TResult; 
 
+enum TimerType {
+    Timer,
+    Ticker
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Timer<M extends unknown[] = any[]>{
+export interface Timer<M extends unknown[] = any[]>{
     time: number;
     function: Func<M, void>;
+    on_end?: () => void;
     params: M;
+    type: TimerType;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -183,12 +190,18 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         time && this.clock.tick(time);
         
         if(this.timers.length){
-            this.timers.forEach(e => e.time -= this.clock.deltaTime);
+            this.timers.forEach(e => {
+                e.time -= this.clock.deltaTime;
+                if(e.type == TimerType.Ticker){
+                    e.function(...e.params);
+                }
+            });
             const timers_done = this.timers.filter(e => e.time <= 0);
             if(timers_done.length){
                 this.timers = this.timers.filter(e => e.time > 0);
                 timers_done.forEach(e => {
-                    e.function(...e.params);
+                    e.type == TimerType.Timer && e.function(...e.params);
+                    e.on_end && e.on_end();
                 })
             }
         }
@@ -198,7 +211,6 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         this.update();
         if(!this.looping || !this.requires_update)
             return;
-
         this.redraw();
         this.requires_update = false;
     }
@@ -264,13 +276,32 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         }
     }
 
-    setTimeout<M extends unknown[]>(timeout: number, fn: Func<M, void>, ...params: M){
+    setTimeout<M extends unknown[]>(timeout: number, fn: Func<M, void>, on_end?: () => void, ...params: M){
         const timer: Timer<M> = {
             function: fn,
+            on_end,
             time: timeout,
-            params: params
+            params: params,
+            type: TimerType.Timer
+
         }
         this.timers.push(timer);
+    }
+
+    setTicker<M extends unknown[]>(duration: number, fn: Func<M, void>, on_end?: () => void, ...params: M){
+        const ticker: Timer<M> = {
+            time: duration,
+            function: fn,
+            on_end,
+            params,
+            type: TimerType.Ticker
+        }
+        this.timers.push(ticker);
+        return ticker;
+    }
+
+    removeTicker(timer: Timer){
+        this.timers = this.timers.filter(e => e != timer);
     }
 
     waitTimeout(time: number): Promise<void> {
@@ -284,8 +315,8 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setContext(value: WithUndefined<ContextType> | (() => (WithUndefined<ContextType> | void))) {
-        this.context = { ...this.context, ...(typeof value == 'function' ? value() : value)};
+    setContext(value: WithUndefined<ContextType> | ((ctx: WithUndefined<ContextType>) => (WithUndefined<ContextType> | void))) {
+        this.context = { ...this.context, ...(typeof value == 'function' ? value(this.context) : value)};
         this.requires_update = true;
     }
 
