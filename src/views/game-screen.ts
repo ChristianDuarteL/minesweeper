@@ -22,6 +22,7 @@ export interface GameContext {
     game?: Game,
     shadow_game?: Game;
     grid_data?: AbstractGame<CellData>;
+    flags?: number;
 }
 
 @customElement('ms-game-screen')
@@ -134,7 +135,8 @@ export default class GameScreen extends LitElement {
         if(!this.current_level) return;
         this.engine.setContext({
             game: new Game(this.current_level, false),
-            shadow_game: new Game(this.current_level, false)
+            shadow_game: new Game(this.current_level, false),
+            flags: 0,
         });
         this.engine.context?.shadow_game?.generate_bombs([
             addPositions(...pos, -1, -1),
@@ -148,6 +150,7 @@ export default class GameScreen extends LitElement {
             addPositions(...pos,  1,  1),
         ])
         this.sweep(pos);
+        this.bombs_left = this.current_level.bombs - (this.engine?.context?.flags ?? 0);
     }
 
     isTileAvailable(game: Game, x: number, y: number){
@@ -170,8 +173,9 @@ export default class GameScreen extends LitElement {
         if(!this.engine) return;
         const tile = this.engine.context.game?.get_tile(...pos, null);
         if(tile === null || tile === undefined || tile == 1) return;
+        const new_tile = (tile - 1) % 3;
         this.engine.setContext((ctx) => {
-            ctx.game?.set_tile(...pos, (tile - 1) % 3)
+            ctx.game?.set_tile(...pos, new_tile)
             if(!ctx.grid_data) return;
             const grid_tile = ctx.grid_data.get_tile(...pos, null);
             if(grid_tile) {
@@ -190,6 +194,11 @@ export default class GameScreen extends LitElement {
                 })
             }
         });
+        
+        this.engine.setContext({
+            flags: (this.engine.context.flags ?? 0) + (tile == -1 && new_tile != -1 ? -1 : tile != -1 && new_tile == -1 ? 1 : 0),
+        })
+        this.current_level && (this.bombs_left = this.current_level.bombs - (this.engine.context.flags ?? 0));
     }
 
     async sweep(pos: point){

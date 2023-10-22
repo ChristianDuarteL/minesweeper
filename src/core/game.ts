@@ -13,7 +13,13 @@ export class AbstractGame<T = number, M extends Dimensions = Dimensions> {
 
     constructor(level_data: M, default_value: () => T){
         this.game_data = level_data;
-        this.data = new Array(this.game_data.height).fill(0).map(() => new Array(this.game_data.width).fill(default_value()));
+        this.data = new Array(this.game_data.height).fill(0).map(() => new Array(this.game_data.width).fill(0));
+        for (let i = 0; i < this.data.length; i++) {
+            const element = this.data[i];
+            for (let j = 0; j < element.length; j++) {
+                this.data[i][j] = default_value();
+            }
+        }
     }
 
     get_tile<T>(x: number, y: number, default_val: T | null = null){
