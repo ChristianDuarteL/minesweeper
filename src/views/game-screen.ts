@@ -134,8 +134,19 @@ export default class GameScreen extends LitElement {
         if(!this.current_level) return;
         this.engine.setContext({
             game: new Game(this.current_level, false),
-            shadow_game: new Game(this.current_level)
-        })
+            shadow_game: new Game(this.current_level, false)
+        });
+        this.engine.context?.shadow_game?.generate_bombs([
+            addPositions(...pos, -1, -1),
+            addPositions(...pos, -1,  0),
+            addPositions(...pos, -1,  1),
+            addPositions(...pos,  0, -1),
+            addPositions(...pos,  0,  0),
+            addPositions(...pos,  0,  1),
+            addPositions(...pos,  1, -1),
+            addPositions(...pos,  1,  0),
+            addPositions(...pos,  1,  1),
+        ])
         this.sweep(pos);
     }
 
@@ -172,7 +183,6 @@ export default class GameScreen extends LitElement {
                         grid_tile.animation_time += this.engine?.deltaTime ?? 0
                     });
                 }, () => {
-                    console.log('e')
                     this.engine?.setContext(() => {
                         grid_tile.animating = false;
                         grid_tile.animation_time = 0;

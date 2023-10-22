@@ -1,6 +1,7 @@
 import { AbstractGame } from "../core/game";
 import { Engine, dimension, point } from "../engine/Engine";
 import { Grid } from "../engine/Grid";
+import { lerpi } from "../engine/math";
 import { Color } from "../engine/painting";
 import { addPositions, substractPositions } from "../utils";
 import { CellData, GameContext } from "../views/game-screen";
@@ -11,6 +12,10 @@ const TILE_COLORS = {
     selected: new Color('8fcdff'),
     marked: new Color('fcbc60'),
     unknown: new Color('73fc60'),
+}
+
+const TEXT_TILE_COLORS = {
+    normal: new Color('FFFFFF'),
 }
 
 export class GameGrid extends Grid {
@@ -89,10 +94,47 @@ export class GameGrid extends Grid {
                 }
                 break;
         }
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
         ctx.fill();
         ctx.stroke();
+        
+        switch(game.context.game?.get_tile(...i)){
+            case -1: {
+                ctx.textAlign = "center";
+                ctx.textBaseline = "bottom";
+                ctx.strokeStyle = '#1379C7';
+                ctx.lineWidth = 2;
+                ctx.fillStyle = '#69beff';
+                ctx.font = "bold 38px 'Nunito'";
+                ctx.beginPath();
+                const pos_start = addPositions(...pos, (size[0] - (size[0] / 2.5)) / 2, size[1] / 4);
+                const pos_animating = tile.animating ? lerpi(0, size[0] / 2.5, (tile.animation_time - tile.animation_duration / 2) / (tile.animation_duration / 2)) : size[0] / 2.5;
+                ctx.moveTo(...pos_start);
+                ctx.lineTo(pos_start[0] + pos_animating, pos_start[1] + size[0] / 2.5 / 1.4375 / 2);
+                ctx.lineTo(pos_start[0],  pos_start[1] + size[0] / 2.5 / 1.4375);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#888';
+                ctx.fillRect(
+                    pos_start[0],  
+                    tile.animating ? lerpi(pos_start[1] + size[1] / 2, pos_start[1], tile.animation_time / (tile.animation_duration / 2)) : pos_start[1], 
+                    3, 
+                    tile.animating ? lerpi(0, size[1] / 2, tile.animation_time / (tile.animation_duration / 2)) : size[1] / 2, 
+                );
+            }break;
+            case -2: {
+                ctx.textAlign = "center";
+                ctx.textBaseline = "bottom";
+                ctx.fillStyle = (tile.animating ? TILE_COLORS.unknown.lerp(TEXT_TILE_COLORS.normal, tile.animation_time / tile.animation_duration) : TEXT_TILE_COLORS.normal).toHexString();
+                ctx.font = "bold 38px 'Nunito'";
+                const metrics = ctx.measureText('?');
+                const pos_y = tile.animating ? lerpi(size[1] * 3 / 4, size[1] / 2, tile.animation_time / tile.animation_duration) : size[1] / 2;
+                ctx.fillText('?', pos[0] + size[0] / 2, pos[1] + pos_y - metrics.actualBoundingBoxDescent + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2)
+            }break;
+        }
+
         if(game.context.game?.get_tile(...i) !== 1){
             return;
         }

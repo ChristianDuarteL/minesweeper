@@ -313,6 +313,10 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
     get deltaTime() {
         return this.clock.deltaTime;
     }
+
+    get time(){
+        return this.clock.lastTime;
+    }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setContext(value: WithUndefined<ContextType> | ((ctx: WithUndefined<ContextType>) => (WithUndefined<ContextType> | void))) {
