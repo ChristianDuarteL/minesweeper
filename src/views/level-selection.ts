@@ -42,34 +42,6 @@ export default class LevelSelectionMenu extends LitElement {
                 justify-content: center;
             }
 
-            @keyframes title-line-anim {
-                0%{
-                    padding: 0 0;
-                }
-                50%{
-                    padding: 0 2em;
-                }
-                100%{
-                    padding: 0 0;
-                }
-            }
-
-            .line:nth-child(2) {
-                transform: rotateZ(6deg);
-            }
-
-            .line:nth-child(4) {
-                transform: rotateZ(-6deg);
-            }
-
-            .line::after, .line::before{
-                content: '';
-                display: block;
-                width: 2em;
-                height: 100%;
-                background: currentColor;
-            }
-
             button{
                 font-size: 2em;
                 --btn-color: #1379C7;
