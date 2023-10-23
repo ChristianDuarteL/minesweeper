@@ -4,7 +4,7 @@ import base from "../styles/base";
 
 
 
-@customElement('ms-level-selection')
+@customElement('ms-lost-panel')
 export default class LostPanel extends LitElement {
     static override styles = [
         base,
@@ -31,7 +31,7 @@ export default class LostPanel extends LitElement {
                 align-items: center;
                 justify-content: center;
             }
-            
+
             button{
                 font-size: 2em;
                 --btn-color: #1379C7;

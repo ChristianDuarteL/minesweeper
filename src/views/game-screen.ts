@@ -10,6 +10,8 @@ import { GameGrid } from "../game/GameGrid";
 import { AbstractGame, Game } from "../core/game";
 import { addPositions } from "../utils";
 
+import './lost-panel';
+
 export interface CellData{
     animating: boolean,
     animation_time: number,
@@ -23,6 +25,12 @@ export interface GameContext {
     shadow_game?: Game;
     grid_data?: AbstractGame<CellData>;
     flags?: number;
+}
+
+export enum GameStatus {
+    Playing,
+    Won,
+    Lost
 }
 
 @customElement('ms-game-screen')
@@ -67,6 +75,14 @@ export default class GameScreen extends LitElement {
                 height: 0;
                 flex: 1; 
             }
+            
+            ms-lost-panel{
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+            }
         `
     ]
 
@@ -77,6 +93,9 @@ export default class GameScreen extends LitElement {
 
     @property({type: Number})
     time_elapsed: number = 0;
+    
+    @property({type: Number})
+    game_status: GameStatus = GameStatus.Playing;
 
     _current_level?: LevelData;
     
@@ -208,9 +227,14 @@ export default class GameScreen extends LitElement {
         if(tile === null || tile === undefined || tile != 0) return;
         let stack_next: point[] = [];
         this.engine.dispatchEvent(new CustomEvent('swept', { detail: pos }));
-        if(!this.engine.context.shadow_game.get_tile(...pos)){
-            stack_next.push(pos)
+        if(this.engine.context.shadow_game.get_tile(...pos)){
+            this.engine.dispatchEvent(new CustomEvent('sweptmine', {
+                detail: pos
+            }));
+            this.game_status = GameStatus.Lost;
+            return;
         }
+        stack_next.push(pos)
         while(stack_next.length > 0){
             const stack = stack_next;
             stack_next = [];
@@ -254,6 +278,7 @@ export default class GameScreen extends LitElement {
                 </ms-game-indicator>
             </div>
             <canvas></canvas>
+            ${this.game_status == GameStatus.Lost ? html`<ms-lost-panel></ms-lost-panel>` : ''}
             <div class="footer">
 
             </div>
@@ -264,5 +289,8 @@ export default class GameScreen extends LitElement {
 declare global {
     interface HTMLElementTagNameMap {
       'ms-game-screen': GameScreen
+    }
+    interface DefaultEngineEventMap {
+        sweptmine: point,
     }
 }
