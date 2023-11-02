@@ -55,7 +55,7 @@ export class Game extends AbstractGame<number, LevelData> {
     generate_bombs(except: point[] = []) {
         const random = seedrandom();
         if(this.game_data.bombs / (this.game_data.width * this.game_data.height) > .5){
-            const arr = new Array(this.game_data.width * this.game_data.height).fill(0).map((v, i) => [i % this.game_data.width, Math.floor(i / this.game_data.width)]);
+            const arr = new Array(this.game_data.width * this.game_data.height).fill(0).map((_, i) => [i % this.game_data.width, Math.floor(i / this.game_data.width)]);
             for (let i = 0; i < arr.length; i++) {
                 const element = arr[i];
                 const random_i = Math.floor(random.double() * arr.length);

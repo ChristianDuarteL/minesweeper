@@ -111,8 +111,8 @@ export class Engine<ContextType = any, EngineEventMap extends { [key: string]: a
         this.event_target.addEventListener(type as string, listener as EventListener, options)
     }
 
-    addListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => void){
-        document.addEventListener(type, listener);
+    addListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void){
+        this.canvas.addEventListener(type, listener);
         this.event_functions.set(type, listener as EventListenerOrEventListenerObject);
     }
     

@@ -1,6 +1,8 @@
 import { LitElement, css, html } from "lit";
-import { customElement, } from "lit/decorators.js";
+import { customElement, property, } from "lit/decorators.js";
 import base from "../styles/base";
+import { classMap } from "lit/directives/class-map.js";
+import { dispatch } from "../utils";
 
 
 
@@ -10,13 +12,31 @@ export default class LostPanel extends LitElement {
         base,
         css`
             :host{
+                color: #1265A5;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                
-                color: #1265A5;
+            }
+
+            .panel{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 gap: 1em;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity .2s;
+            }
+
+            .panel.show{
+                backdrop-filter: blur(3px);
+                background: #fff8;
+                width: 100%;
+                height: 100%;
+                opacity: 1;
+                pointer-events: all;
             }
 
             h2{
@@ -63,16 +83,24 @@ export default class LostPanel extends LitElement {
                 outline-offset: -.05em;
             }
         `
-    ]
+    ];
+
+    @property({
+        attribute: "show",
+        type: Boolean
+    })
+    show: boolean = false;
 
     protected render() {
         return html`
-            <div class="title">
-                <h2>You lost</h2>
+            <div class=${classMap({"panel": true, show: this.show})}>
+                <div class="title">
+                    <h2>You lost</h2>
+                </div>
+                <button @click=${() => dispatch(this, 'newgame')}>New game</button>
+                <button @click=${() => dispatch(this, 'restartgame')}>Play again</button>
+                <button @click=${() => dispatch(this, 'mainmenu')}>Main menu</button>
             </div>
-            <button>Play again</button>
-            <button>New game</button>
-            <button>Main menu</button>
         `
     }
 }

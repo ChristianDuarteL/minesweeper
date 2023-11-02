@@ -82,6 +82,11 @@ export default class GameScreen extends LitElement {
                 height: 100%;
                 top: 0;
                 left: 0;
+                pointer-events: none;
+            }
+            
+            ms-lost-panel[show]{
+                pointer-events: all;
             }
         `
     ]
@@ -278,7 +283,7 @@ export default class GameScreen extends LitElement {
                 </ms-game-indicator>
             </div>
             <canvas></canvas>
-            ${this.game_status == GameStatus.Lost ? html`<ms-lost-panel></ms-lost-panel>` : ''}
+            <ms-lost-panel ?show=${this.game_status == GameStatus.Lost}></ms-lost-panel>
             <div class="footer">
 
             </div>
