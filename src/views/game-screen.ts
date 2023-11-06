@@ -11,6 +11,7 @@ import { AbstractGame, Game } from "../core/game";
 import { addPositions } from "../utils";
 
 import './lost-panel';
+import './won-panel';
 
 export interface CellData{
     animating: boolean,
@@ -76,7 +77,7 @@ export default class GameScreen extends LitElement {
                 flex: 1; 
             }
             
-            ms-lost-panel{
+            ms-lost-panel, ms-won-panel{
                 position: absolute;
                 width: 100%;
                 height: 100%;
@@ -85,7 +86,7 @@ export default class GameScreen extends LitElement {
                 pointer-events: none;
             }
             
-            ms-lost-panel[show]{
+            ms-lost-panel[show], ms-won-panel[show]{
                 pointer-events: all;
             }
         `
@@ -281,6 +282,17 @@ export default class GameScreen extends LitElement {
             }
             await this.engine.waitTimeout(32);
         }
+        this.checkWinningState();
+    }
+
+    checkWinningState(){
+        if(!this.engine || !this.engine.context.game || !this.engine.context.shadow_game) return;
+        const has_won = this.engine.context.game.compare_with_game(this.engine.context.shadow_game, (a, b) => {
+            return ((a != 1 && b == 0) || (a == 1 && b == 1)) ? false : undefined;
+        }, true)
+        if(has_won){
+            this.game_status = GameStatus.Won;
+        }
     }
 
     recalculateCanvas(){
@@ -303,6 +315,10 @@ export default class GameScreen extends LitElement {
                 ?show=${this.game_status == GameStatus.Lost} 
                 @newgame=${this.reinitialize}
             ></ms-lost-panel>
+            <ms-won-panel 
+                ?show=${this.game_status == GameStatus.Won} 
+                @newgame=${this.reinitialize}
+            ></ms-won-panel>
             <div class="footer">
 
             </div>

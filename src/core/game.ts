@@ -7,6 +7,8 @@ interface Dimensions {
     height: number
 }
 
+type CompareGameFn<T, R> = (tile_a: T | null, tile_b: T | null) => R | undefined;
+
 export class AbstractGame<T = number, M extends Dimensions = Dimensions> {
     game_data: M;
     data: T[][];
@@ -43,6 +45,16 @@ export class AbstractGame<T = number, M extends Dimensions = Dimensions> {
             }
         }
         return game;
+    }
+
+    compare_with_game<R>(game: AbstractGame<T>, fn: CompareGameFn<T, R>, default_value: R){
+        for(let x = 0; x < this.game_data.width; x++){
+            for (let y = 0; y < this.game_data.height; y++) {
+                const r = fn(this.get_tile_nullsafe(x, y, null), game.get_tile_nullsafe(x, y, null));
+                if(r !== undefined) return r;
+            }
+        }
+        return default_value;
     }
 }
 
