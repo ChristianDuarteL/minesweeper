@@ -98,7 +98,6 @@ export default class LostPanel extends LitElement {
                     <h2>You lost</h2>
                 </div>
                 <button @click=${() => dispatch(this, 'newgame')}>New game</button>
-                <button @click=${() => dispatch(this, 'restartgame')}>Play again</button>
                 <button @click=${() => dispatch(this, 'mainmenu')}>Main menu</button>
             </div>
         `

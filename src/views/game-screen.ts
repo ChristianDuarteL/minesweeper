@@ -124,6 +124,17 @@ export default class GameScreen extends LitElement {
         this.init_engine();
         this.engine?.startLoop();
     }
+
+    reinitialize(){
+        if(!this.engine) return;
+        this.engine.setContext({
+            game: undefined,
+            shadow_game: undefined,
+            flags: undefined,
+        });
+        this.game_status = GameStatus.Playing;
+        this.recalculateBombsLeft();
+    }
     
     init_engine(){
         const canvas = this.canvas;
@@ -140,6 +151,7 @@ export default class GameScreen extends LitElement {
             this.engine.addEntity(new GameGrid());
             this.recalculateCanvas();
             this.engine.startLoop();
+            this.recalculateBombsLeft()
         }
     }
 
@@ -174,7 +186,7 @@ export default class GameScreen extends LitElement {
             addPositions(...pos,  1,  1),
         ])
         this.sweep(pos);
-        this.bombs_left = this.current_level.bombs - (this.engine?.context?.flags ?? 0);
+        this.recalculateBombsLeft()
     }
 
     isTileAvailable(game: Game, x: number, y: number){
@@ -222,7 +234,11 @@ export default class GameScreen extends LitElement {
         this.engine.setContext({
             flags: (this.engine.context.flags ?? 0) + (tile == -1 && new_tile != -1 ? -1 : tile != -1 && new_tile == -1 ? 1 : 0),
         })
-        this.current_level && (this.bombs_left = this.current_level.bombs - (this.engine.context.flags ?? 0));
+        this.recalculateBombsLeft()
+    }
+
+    recalculateBombsLeft(){
+        this.engine && this.current_level && (this.bombs_left = this.current_level.bombs - (this.engine.context.flags ?? 0));
     }
 
     async sweep(pos: point){
@@ -283,7 +299,10 @@ export default class GameScreen extends LitElement {
                 </ms-game-indicator>
             </div>
             <canvas></canvas>
-            <ms-lost-panel ?show=${this.game_status == GameStatus.Lost}></ms-lost-panel>
+            <ms-lost-panel 
+                ?show=${this.game_status == GameStatus.Lost} 
+                @newgame=${this.reinitialize}
+            ></ms-lost-panel>
             <div class="footer">
 
             </div>
