@@ -56,14 +56,6 @@ class App extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback()
-        this.play(
-            {
-                bombs: 9,
-                height: 8,
-                width: 8,
-                name: 'Expert'
-            }
-        )
     }
 
     mainMenuOptionSelected(i: number){
@@ -84,7 +76,7 @@ class App extends LitElement {
         return html `
             ${ this.screen == Screen.MainMenu ? html`<ms-main-menu @optionselected=${(e: OptionSelectedEvent) => this.mainMenuOptionSelected(e.detail.option)}></ms-main-menu>` : null }
             ${ this.screen == Screen.LevelSelection ? html`<ms-level-selection @levelselected=${(e: LevelSelectedEvent) => this.play(e.detail)}></ms-level-selection>` : null }
-            ${ this.screen == Screen.GameScreen && this.current_level ? html`<ms-game-screen .current_level=${this.current_level}></ms-game-screen>` : null }
+            ${ this.screen == Screen.GameScreen && this.current_level ? html`<ms-game-screen @mainmenu=${() => this.screen = Screen.MainMenu} .current_level=${this.current_level}></ms-game-screen>` : null }
         `
     }
 }

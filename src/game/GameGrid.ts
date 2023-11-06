@@ -21,7 +21,7 @@ const TEXT_TILE_COLORS = {
 export class GameGrid extends Grid {
     max_row_labels_count?: number;
     max_col_labels_count?: number;
-    padding: number = 6;
+    padding: number = .07;
     
     constructor(size_ratio: point = [1, 1]){
         super([1, 1], size_ratio)
@@ -63,6 +63,7 @@ export class GameGrid extends Grid {
     }
 
     draw_element_fn = (ctx: CanvasRenderingContext2D, i: point, pos: point, size: dimension, game: Engine<GameContext>) => {
+        const padding = size[0] * this.padding;
         const tile = game.context.grid_data?.get_tile(...i, null);
         if(!tile) return;
         ctx.fillStyle = "#60bdfc";
@@ -72,7 +73,7 @@ export class GameGrid extends Grid {
             ctx.strokeStyle = "#ddd";
         }
         ctx.beginPath();
-        ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
+        ctx.roundRect(...addPositions(...pos, padding / 2), ...substractPositions(...size, padding), 10);
         ctx.fill();
         switch(game.context.game?.get_tile(...i)){
             case 1:
@@ -96,7 +97,7 @@ export class GameGrid extends Grid {
         }
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(...addPositions(...pos, this.padding / 2), ...substractPositions(...size, this.padding), 10);
+        ctx.roundRect(...addPositions(...pos, padding / 2), ...substractPositions(...size, padding), size[0] * .15);
         ctx.fill();
         ctx.stroke();
         
@@ -107,7 +108,7 @@ export class GameGrid extends Grid {
                 ctx.strokeStyle = '#1379C7';
                 ctx.lineWidth = 2;
                 ctx.fillStyle = '#69beff';
-                ctx.font = "bold 38px 'Nunito'";
+                ctx.font = `bold ${size[1] * .65}px 'Nunito'`;
                 ctx.beginPath();
                 const pos_start = addPositions(...pos, (size[0] - (size[0] / 2.5)) / 2, size[1] / 4);
                 const pos_animating = tile.animating ? lerpi(0, size[0] / 2.5, (tile.animation_time - tile.animation_duration / 2) / (tile.animation_duration / 2)) : size[0] / 2.5;
@@ -128,7 +129,7 @@ export class GameGrid extends Grid {
                 ctx.textAlign = "center";
                 ctx.textBaseline = "bottom";
                 ctx.fillStyle = (tile.animating ? TILE_COLORS.unknown.lerp(TEXT_TILE_COLORS.normal, tile.animation_time / tile.animation_duration) : TEXT_TILE_COLORS.normal).toHexString();
-                ctx.font = "bold 38px 'Nunito'";
+                ctx.font = `bold ${size[1] * .65}px 'Nunito'`;
                 const metrics = ctx.measureText('?');
                 const pos_y = tile.animating ? lerpi(size[1] * 3 / 4, size[1] / 2, tile.animation_time / tile.animation_duration) : size[1] / 2;
                 ctx.fillText('?', pos[0] + size[0] / 2, pos[1] + pos_y - metrics.actualBoundingBoxDescent + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2)
@@ -143,7 +144,7 @@ export class GameGrid extends Grid {
             ctx.textAlign = "center";
             ctx.textBaseline = "bottom";
             ctx.fillStyle = FONT_COLORS[n];
-            ctx.font = "bold 38px 'Nunito'";
+            ctx.font = `bold ${size[1] * .65}px 'Nunito'`;
             const metrics = ctx.measureText(n?.toString());
             ctx.fillText(n?.toString(), pos[0] + size[0] /2 , pos[1] + size[1] / 2 - metrics.actualBoundingBoxDescent + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2)
         }

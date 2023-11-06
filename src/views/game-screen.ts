@@ -43,7 +43,7 @@ export default class GameScreen extends LitElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: space-between;
+                justify-content: center;
                 
                 color: #1265A5;
                 gap: 1em;
@@ -53,6 +53,7 @@ export default class GameScreen extends LitElement {
                 --flag:  #1379C7;
                 --handle: #888;
                 padding: 1em 0;
+                position: relative;
             }
 
             ms-game-indicator{
@@ -71,9 +72,15 @@ export default class GameScreen extends LitElement {
             
             .header{
                 justify-content: space-between;
+                top: 0;
+            }
+            .footer{
+                bottom: 0;
             }
             canvas{
                 height: 0;
+                max-width: 1140px;
+                max-height: calc(90vh - 150px);
                 flex: 1; 
             }
             
